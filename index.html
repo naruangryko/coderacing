@@ -575,51 +575,70 @@ const SUPABASE_KEY = 'sb_publishable_5RaHh16WSlAfM0qScGUr9Q_fg34LWW2';
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ── 타자 문제 풀 ──
+// ── 타자 문제 풀 (Python 전용) ──
 const QUESTIONS = [
-  // 터미널 명령어
-  "git init",
-  "git add .",
-  "git commit -m 'first commit'",
-  "git push origin main",
-  "git clone https://github.com/user/repo.git",
-  "git status",
-  "git log --oneline",
-  "git branch feature/login",
-  "git checkout -b develop",
-  "git merge feature/login",
-  "ls -la",
-  "cd ~/Documents",
-  "mkdir my_project && cd my_project",
-  "rm -rf node_modules",
-  "chmod +x script.sh",
-  "pip install -r requirements.txt",
-  "python -m venv venv",
-  "source venv/bin/activate",
-  "npm install",
-  "npm run dev",
-  "npm run build",
-  "node index.js",
-  // Python 스니펫
+  // 기초 출력 / 변수
   "print('Hello, World!')",
+  "name = input('이름을 입력하세요: ')",
+  "print(f'안녕하세요, {name}님!')",
+  "x, y = 10, 20",
+  "print(type(x))",
+  // 조건문
+  "if x > 0: print('양수')",
+  "if x % 2 == 0: print('짝수') else: print('홀수')",
+  "result = '합격' if score >= 60 else '불합격'",
+  // 반복문
   "for i in range(10): print(i)",
+  "for i in range(1, 6): print(i * i)",
+  "while x > 0: x -= 1",
+  "for i, v in enumerate(lst): print(i, v)",
+  // 리스트
+  "lst = [1, 2, 3, 4, 5]",
+  "lst.append(6)",
+  "lst.pop(0)",
+  "lst.sort(reverse=True)",
+  "squares = [x**2 for x in range(10)]",
+  "evens = [x for x in range(20) if x % 2 == 0]",
+  // 딕셔너리
+  "d = {'name': 'Alice', 'age': 20}",
+  "d['score'] = 100",
+  "for k, v in d.items(): print(k, v)",
+  "keys = list(d.keys())",
+  // 함수
   "def greet(name): return f'Hello, {name}!'",
-  "list = [x**2 for x in range(5)]",
-  "import os; os.getcwd()",
-  "with open('file.txt', 'r') as f: data = f.read()",
-  "if __name__ == '__main__': main()",
+  "def add(a, b=0): return a + b",
+  "def factorial(n): return 1 if n <= 1 else n * factorial(n-1)",
+  "result = list(map(lambda x: x*2, lst))",
+  "total = sum(filter(lambda x: x > 0, lst))",
+  // 클래스
   "class Dog: def __init__(self, name): self.name = name",
-  // JS 스니펫
-  "const arr = [1, 2, 3].map(x => x * 2);",
-  "console.log('Hello, World!');",
-  "const obj = { name: 'Alice', age: 25 };",
-  "fetch('/api/data').then(res => res.json());",
-  "document.querySelector('#btn').addEventListener('click', () => {});",
-  "const [count, setCount] = useState(0);",
-  "async function getData() { const res = await fetch(url); }",
-  "export default function App() { return <div>Hello</div>; }",
-  "npm install express cors dotenv",
-  "const PORT = process.env.PORT || 3000;",
+  "class Animal: def speak(self): return '...'",
+  "class Cat(Animal): def speak(self): return '야옹'",
+  "obj = Dog('뽀삐')",
+  "print(obj.name)",
+  // 파일 / 예외처리
+  "with open('data.txt', 'r') as f: lines = f.readlines()",
+  "with open('out.txt', 'w') as f: f.write('hello')",
+  "try: x = int(input()) except ValueError: print('숫자가 아닙니다')",
+  "raise ValueError('잘못된 입력입니다')",
+  // 모듈
+  "import math; print(math.sqrt(16))",
+  "import random; n = random.randint(1, 100)",
+  "from datetime import datetime; print(datetime.now())",
+  "import os; files = os.listdir('.')",
+  "import json; data = json.loads(text)",
+  // 문자열
+  "text = 'Hello World'",
+  "print(text.lower())",
+  "print(text.split())",
+  "print(', '.join(['a', 'b', 'c']))",
+  "print(text[::-1])",
+  // 고급
+  "nums = sorted(lst, key=lambda x: -x)",
+  "unique = list(set(lst))",
+  "pairs = list(zip(keys, values))",
+  "from collections import Counter; c = Counter(lst)",
+  "if __name__ == '__main__': main()",
 ];
 
 const AVATAR_COLORS = [
@@ -649,7 +668,53 @@ let state = {
   finished: false,
   gameStarted: false,
   waitingPoller: null,
+  syncTimer: null,
+  lastRank: null,   // 앞지르기 감지용
 };
+
+// ── 부릉~ 효과음 (Web Audio API) ──
+function playOvertakeSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function makeRevLayer(freq, gainVal, startTime, duration, endFreq) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + startTime);
+      osc.frequency.exponentialRampToValueAtTime(endFreq, ctx.currentTime + startTime + duration);
+      gain.gain.setValueAtTime(0, ctx.currentTime + startTime);
+      gain.gain.linearRampToValueAtTime(gainVal, ctx.currentTime + startTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startTime + duration);
+      osc.start(ctx.currentTime + startTime);
+      osc.stop(ctx.currentTime + startTime + duration + 0.05);
+    }
+
+    // 부릉~ : 낮은 엔진음이 치솟는 느낌
+    makeRevLayer(80,  0.18, 0.00, 0.18, 220);
+    makeRevLayer(160, 0.12, 0.00, 0.18, 440);
+    makeRevLayer(120, 0.15, 0.15, 0.20, 320);
+    makeRevLayer(240, 0.10, 0.15, 0.20, 640);
+    makeRevLayer(180, 0.13, 0.32, 0.22, 480);
+    makeRevLayer(360, 0.08, 0.32, 0.22, 960);
+
+    // 마무리 고음 whine
+    const whine = ctx.createOscillator();
+    const whineGain = ctx.createGain();
+    whine.connect(whineGain);
+    whineGain.connect(ctx.destination);
+    whine.type = 'sine';
+    whine.frequency.setValueAtTime(1200, ctx.currentTime + 0.48);
+    whine.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.80);
+    whineGain.gain.setValueAtTime(0.07, ctx.currentTime + 0.48);
+    whineGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.80);
+    whine.start(ctx.currentTime + 0.48);
+    whine.stop(ctx.currentTime + 0.85);
+
+  } catch(e) { /* 오디오 지원 안 되면 무시 */ }
+}
 
 // ── 유틸 ──
 function showToast(msg, duration=2500) {
@@ -886,6 +951,7 @@ async function startGameClient(sessionData) {
     state.finished = false;
     state.timeLeft = 180;
     state.startTime = Date.now();
+    state.lastRank = null;
 
     showScreen('game');
     subscribeGame();
@@ -1091,6 +1157,13 @@ async function updateRankBar() {
   document.getElementById('my-rank-num').textContent = myRank || '-';
   document.getElementById('my-rank-total').textContent = `/ ${total}명`;
 
+  // 앞지르기 감지: 이전 순위보다 순위가 올라갔을 때 부릉~
+  if (state.lastRank !== null && myRank > 0 && myRank < state.lastRank) {
+    playOvertakeSound();
+    showToast(`🏎️ 앞질렀다! ${state.lastRank}위 → ${myRank}위`, 1800);
+  }
+  if (myRank > 0) state.lastRank = myRank;
+
   const entries = document.getElementById('rank-entries');
   entries.innerHTML = '';
   const show = data.slice(0, 5);
@@ -1215,7 +1288,7 @@ function resetState() {
     totalChars: 0, wrongChars: 0, startTime: null,
     gameTimer: null, timeLeft: 180, realtimeChannel: null,
     allPlayers: [], finished: false, gameStarted: false,
-    waitingPoller: null, syncTimer: null,
+    waitingPoller: null, syncTimer: null, lastRank: null,
   };
 }
 
